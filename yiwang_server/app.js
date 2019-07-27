@@ -42,7 +42,7 @@ server.listen(3000);
 //1:检查数据库t_login
 //2.启动数据库启动node.js
 //3.地址栏访问http://127.0.0.1:3000/login?uname=tom&upwd=123
-server.get("/Login",(req,res)=>{
+server.get("/login",(req,res)=>{
     //1.接收脚手架
     var uname=req.query.uname;
     var upwd=req.query.upwd;
@@ -73,7 +73,7 @@ server.get("/product",(req,res)=>{
     if(!pno){pno=1};
     if(!ps){ps=4};
     //3.sql
-    var sql="SELECT lid,title,price  FROM  xz_laptop  LIMIT  ?,?";
+    var sql="SELECT id,img_url,author,title,price  FROM  yw_list  LIMIT  ?,?";
     var offset=(pno-1)*ps;
     ps=parseInt(ps);
     //json
@@ -84,24 +84,29 @@ server.get("/product",(req,res)=>{
 })
 //功能三:查询指定用户购物车信息88~114
 server.get("/cart",(req,res)=>{
-    //参数
+    console.log(req.session.uid);
     var uid = req.session.uid;
+    if(!uid){
+        res.send({code:-1,msg:"请登录"});
+        return;
+    }
     //sql
-    var sql = "SELECT  id,img,uid,price,count  FROM xz_cart WHERE uid = ?";
+    var sql = "SELECT  id,author,art_title,ellipsis,artSize,price,art_img,count  FROM  yw_cart  WHERE uid = ?";
     pool.query(sql,[uid],(err,result)=>{
         if(err)throw err;
         res.send({code:1,msg:"查询成功",data:result})
+        console.log(result)
     });
     //json
     })
 
 
   //功能四:-删除指定购物车中一个商品
-    server.get("/del",(req,res)=>{
+    server.get("/delItem",(req,res)=>{
     //参数:id
     var id = req.query.id;
     //sql:
-    var sql = "DELETE FROM xz_cart WHERE id = ?";
+    var sql = "DELETE FROM yw_cart WHERE id = ?";
     //json
     pool.query(sql,[id],(err,result)=>{
         if(err)throw err;
@@ -114,7 +119,7 @@ server.get("/cart",(req,res)=>{
     server.get("/delAll",(req,res)=>{
       //参数
         var ids=req.query.ids;
-        var sql=`DELETE  FROM xz_cart WHERE id IN(${ids})`;
+        var sql=`DELETE  FROM yw_cart WHERE id IN(${ids})`;
         pool.query(sql,(err,result)=>{
             if(err)throw err;
             //insert updata delect
